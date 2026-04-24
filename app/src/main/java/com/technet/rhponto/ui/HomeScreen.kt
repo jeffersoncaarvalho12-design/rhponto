@@ -10,8 +10,6 @@ import com.technet.rhponto.model.AppUser
 @Composable
 fun HomeScreen(
     user: AppUser,
-    onSolicitarPermissoes: () -> Unit,
-    onCapturarSelfie: () -> Unit,
     onBaterPonto: (String, (String?, String?) -> Unit) -> Unit,
     onHistorico: ((String?, String?) -> Unit) -> Unit,
     onLogout: () -> Unit
@@ -24,36 +22,22 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.Center
     ) {
-        Text("Olá, ${user.nome}", style = MaterialTheme.typography.headlineSmall)
+        Text("Olá,", style = MaterialTheme.typography.titleLarge)
+        Text(user.nome, style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(8.dp))
         Text("Matrícula: ${user.matricula}")
-        Text("Para bater ponto, permita GPS e câmera, capture a selfie e depois registre o ponto.")
+        Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = observacao,
             onValueChange = { observacao = it },
-            label = { Text("Observação") },
+            label = { Text("Observação opcional") },
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(
-            onClick = onSolicitarPermissoes,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("1. Permitir câmera e localização")
-        }
-
-        Button(
-            onClick = {
-                mensagem = "Selfie capturada. Agora toque em bater ponto."
-                erro = null
-                onCapturarSelfie()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("2. Capturar selfie facial")
-        }
+        Spacer(Modifier.height(16.dp))
 
         Button(
             onClick = {
@@ -66,8 +50,10 @@ fun HomeScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("3. Bater ponto com selfie + GPS")
+            Text("Bater ponto com selfie + GPS")
         }
+
+        Spacer(Modifier.height(12.dp))
 
         Button(
             onClick = {
@@ -83,12 +69,16 @@ fun HomeScreen(
             Text("Ver histórico")
         }
 
+        Spacer(Modifier.height(12.dp))
+
         OutlinedButton(
             onClick = onLogout,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Sair")
         }
+
+        Spacer(Modifier.height(16.dp))
 
         if (mensagem != null) {
             Card {
