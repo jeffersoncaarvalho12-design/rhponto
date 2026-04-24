@@ -30,6 +30,14 @@ data class AppUser(
 )
 
 @Serializable
+data class PrimeiroAcessoResponse(
+    val ok: Boolean,
+    val message: String,
+    @SerialName("login_mobile")
+    val loginMobile: String? = null
+)
+
+@Serializable
 data class BatidaResponse(
     val ok: Boolean,
     val message: String
