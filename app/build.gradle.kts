@@ -78,4 +78,7 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
+
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }
