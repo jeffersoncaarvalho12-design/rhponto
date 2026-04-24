@@ -83,10 +83,9 @@ private fun AppNav(repository: MobileRepository) {
                 onVoltar = {
                     navController.popBackStack()
                 },
-                onCriarAcesso = { cpf, matricula, senha, confirmarSenha, onResult ->
+                onCriarAcesso = { cpf, senha, confirmarSenha, onResult ->
                     repository.primeiroAcesso(
                         cpf = cpf,
-                        matricula = matricula,
                         senha = senha,
                         confirmarSenha = confirmarSenha,
                         onSuccess = { msg ->
@@ -138,15 +137,18 @@ private fun AppNav(repository: MobileRepository) {
                     cameraLauncher.launch(null)
                 },
                 onBaterPonto = { observacao, onResult ->
+                    val fotoBase64 = repository.pendingBitmap?.toBase64Jpeg()
+
+                    if (fotoBase64.isNullOrBlank()) {
+                        onResult(null, "Capture a selfie antes de bater o ponto.")
+                        return@HomeScreen
+                    }
+
                     val fused = LocationServices.getFusedLocationProviderClient(repository.context)
 
                     try {
                         fused.lastLocation
                             .addOnSuccessListener { location ->
-                                val fotoBase64 = repository.pendingBitmap?.let { bitmap ->
-                                    bitmap.toBase64Jpeg()
-                                }
-
                                 repository.baterPonto(
                                     login = user.loginMobile,
                                     senha = user.senha,
