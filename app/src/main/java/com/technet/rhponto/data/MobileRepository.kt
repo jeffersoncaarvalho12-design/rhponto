@@ -1,10 +1,13 @@
 package com.technet.rhponto.data
 
 import android.content.Context
-import android.graphics.Bitmap
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.technet.rhponto.model.AppUser
+import com.technet.rhponto.model.BaterPontoRequest
 import com.technet.rhponto.model.HistoricoItem
+import com.technet.rhponto.model.HistoricoRequest
+import com.technet.rhponto.model.LoginRequest
+import com.technet.rhponto.model.PrimeiroAcessoRequest
 import com.technet.rhponto.network.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +19,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 
 class MobileRepository(val context: Context) {
-
-    var pendingBitmap: Bitmap? = null
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -47,12 +48,7 @@ class MobileRepository(val context: Context) {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val resp = api.login(
-                    mapOf(
-                        "login" to login,
-                        "senha" to senha
-                    )
-                )
+                val resp = api.login(LoginRequest(login = login, senha = senha))
 
                 if (resp.ok && resp.funcionario != null) {
                     val user = AppUser(
@@ -68,7 +64,9 @@ class MobileRepository(val context: Context) {
                     CoroutineScope(Dispatchers.Main).launch { onError(resp.message) }
                 }
             } catch (e: Exception) {
-                CoroutineScope(Dispatchers.Main).launch { onError("Falha no login: ${e.message}") }
+                CoroutineScope(Dispatchers.Main).launch {
+                    onError("Falha no login: ${e.message}")
+                }
             }
         }
     }
@@ -83,10 +81,10 @@ class MobileRepository(val context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val resp = api.primeiroAcesso(
-                    mapOf(
-                        "cpf" to cpf,
-                        "senha" to senha,
-                        "confirmar_senha" to confirmarSenha
+                    PrimeiroAcessoRequest(
+                        cpf = cpf,
+                        senha = senha,
+                        confirmarSenha = confirmarSenha
                     )
                 )
 
@@ -127,26 +125,27 @@ class MobileRepository(val context: Context) {
                 }
 
                 val resp = api.baterPonto(
-                    mapOf(
-                        "login" to login,
-                        "senha" to senha,
-                        "latitude" to latitude,
-                        "longitude" to longitude,
-                        "precisao_gps" to precisaoGps,
-                        "foto_base64" to fotoBase64,
-                        "observacao" to observacao,
-                        "device_info" to deviceInfo
+                    BaterPontoRequest(
+                        login = login,
+                        senha = senha,
+                        latitude = latitude,
+                        longitude = longitude,
+                        precisaoGps = precisaoGps,
+                        fotoBase64 = fotoBase64,
+                        observacao = observacao,
+                        deviceInfo = deviceInfo
                     )
                 )
 
                 if (resp.ok) {
-                    pendingBitmap = null
                     CoroutineScope(Dispatchers.Main).launch { onSuccess(resp.message) }
                 } else {
                     CoroutineScope(Dispatchers.Main).launch { onError(resp.message) }
                 }
             } catch (e: Exception) {
-                CoroutineScope(Dispatchers.Main).launch { onError("Falha ao bater ponto: ${e.message}") }
+                CoroutineScope(Dispatchers.Main).launch {
+                    onError("Falha ao bater ponto: ${e.message}")
+                }
             }
         }
     }
@@ -160,10 +159,10 @@ class MobileRepository(val context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val resp = api.historico(
-                    mapOf(
-                        "login" to login,
-                        "senha" to senha,
-                        "limite" to 20
+                    HistoricoRequest(
+                        login = login,
+                        senha = senha,
+                        limite = 20
                     )
                 )
 
