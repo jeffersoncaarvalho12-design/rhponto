@@ -28,6 +28,7 @@ fun HomeScreen(
     ) {
         Text("Olá, ${user.nome}", style = MaterialTheme.typography.headlineSmall)
         Text("Matrícula: ${user.matricula}")
+        Text("Para bater ponto, permita GPS e câmera, capture a selfie e depois registre o ponto.")
 
         OutlinedTextField(
             value = observacao,
@@ -40,14 +41,18 @@ fun HomeScreen(
             onClick = onSolicitarPermissoes,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Solicitar permissões")
+            Text("1. Permitir câmera e localização")
         }
 
         Button(
-            onClick = onCapturarSelfie,
+            onClick = {
+                mensagem = "Selfie capturada. Agora toque em bater ponto."
+                erro = null
+                onCapturarSelfie()
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Capturar selfie")
+            Text("2. Capturar selfie facial")
         }
 
         Button(
@@ -61,7 +66,7 @@ fun HomeScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Bater ponto")
+            Text("3. Bater ponto com selfie + GPS")
         }
 
         Button(
