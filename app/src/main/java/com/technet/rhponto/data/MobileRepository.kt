@@ -75,7 +75,6 @@ class MobileRepository(val context: Context) {
 
     fun primeiroAcesso(
         cpf: String,
-        matricula: String,
         senha: String,
         confirmarSenha: String,
         onSuccess: (String) -> Unit,
@@ -86,7 +85,6 @@ class MobileRepository(val context: Context) {
                 val resp = api.primeiroAcesso(
                     mapOf(
                         "cpf" to cpf,
-                        "matricula" to matricula,
                         "senha" to senha,
                         "confirmar_senha" to confirmarSenha
                     )
@@ -121,6 +119,13 @@ class MobileRepository(val context: Context) {
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                if (fotoBase64.isNullOrBlank()) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onError("Capture a selfie antes de bater o ponto.")
+                    }
+                    return@launch
+                }
+
                 val resp = api.baterPonto(
                     mapOf(
                         "login" to login,
@@ -135,6 +140,7 @@ class MobileRepository(val context: Context) {
                 )
 
                 if (resp.ok) {
+                    pendingBitmap = null
                     CoroutineScope(Dispatchers.Main).launch { onSuccess(resp.message) }
                 } else {
                     CoroutineScope(Dispatchers.Main).launch { onError(resp.message) }
