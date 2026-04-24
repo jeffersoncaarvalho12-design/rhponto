@@ -4,6 +4,42 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class LoginRequest(
+    val login: String,
+    val senha: String
+)
+
+@Serializable
+data class PrimeiroAcessoRequest(
+    val cpf: String,
+    val senha: String,
+    @SerialName("confirmar_senha")
+    val confirmarSenha: String
+)
+
+@Serializable
+data class BaterPontoRequest(
+    val login: String,
+    val senha: String,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    @SerialName("precisao_gps")
+    val precisaoGps: Double? = null,
+    @SerialName("foto_base64")
+    val fotoBase64: String? = null,
+    val observacao: String = "",
+    @SerialName("device_info")
+    val deviceInfo: String = "Android App RH Ponto"
+)
+
+@Serializable
+data class HistoricoRequest(
+    val login: String,
+    val senha: String,
+    val limite: Int = 20
+)
+
+@Serializable
 data class LoginResponse(
     val ok: Boolean,
     val message: String,
