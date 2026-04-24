@@ -9,11 +9,15 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
+    savedLogin: String,
+    hasSavedCredentials: Boolean,
     onPrimeiroAcesso: () -> Unit,
-    onLogin: (String, String, (String?) -> Unit) -> Unit
+    onBiometricLogin: ((String?) -> Unit) -> Unit,
+    onLogin: (String, String, Boolean, (String?) -> Unit) -> Unit
 ) {
-    var login by remember { mutableStateOf("") }
+    var login by remember { mutableStateOf(savedLogin) }
     var senha by remember { mutableStateOf("") }
+    var salvarAcesso by remember { mutableStateOf(savedLogin.isNotBlank()) }
     var erro by remember { mutableStateOf<String?>(null) }
     var carregando by remember { mutableStateOf(false) }
 
@@ -32,7 +36,8 @@ fun LoginScreen(
             value = login,
             onValueChange = { login = it },
             label = { Text("CPF ou login mobile") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(Modifier.height(12.dp))
@@ -42,8 +47,19 @@ fun LoginScreen(
             onValueChange = { senha = it },
             label = { Text("Senha") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
+
+        Spacer(Modifier.height(8.dp))
+
+        Row {
+            Checkbox(
+                checked = salvarAcesso,
+                onCheckedChange = { salvarAcesso = it }
+            )
+            Text("Salvar acesso neste aparelho")
+        }
 
         Spacer(Modifier.height(16.dp))
 
@@ -59,7 +75,7 @@ fun LoginScreen(
             onClick = {
                 carregando = true
                 erro = null
-                onLogin(login, senha) { error ->
+                onLogin(login, senha, salvarAcesso) { error ->
                     carregando = false
                     erro = error
                 }
@@ -71,6 +87,22 @@ fun LoginScreen(
         }
 
         Spacer(Modifier.height(12.dp))
+
+        if (hasSavedCredentials) {
+            Button(
+                onClick = {
+                    erro = null
+                    onBiometricLogin { error ->
+                        erro = error
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Entrar com biometria do celular")
+            }
+
+            Spacer(Modifier.height(12.dp))
+        }
 
         OutlinedButton(
             onClick = onPrimeiroAcesso,
