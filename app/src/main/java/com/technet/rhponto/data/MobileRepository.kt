@@ -73,6 +73,40 @@ class MobileRepository(val context: Context) {
         }
     }
 
+    fun primeiroAcesso(
+        cpf: String,
+        matricula: String,
+        senha: String,
+        confirmarSenha: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val resp = api.primeiroAcesso(
+                    mapOf(
+                        "cpf" to cpf,
+                        "matricula" to matricula,
+                        "senha" to senha,
+                        "confirmar_senha" to confirmarSenha
+                    )
+                )
+
+                if (resp.ok) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onSuccess("${resp.message}\nLogin: ${resp.loginMobile ?: cpf}")
+                    }
+                } else {
+                    CoroutineScope(Dispatchers.Main).launch { onError(resp.message) }
+                }
+            } catch (e: Exception) {
+                CoroutineScope(Dispatchers.Main).launch {
+                    onError("Falha ao criar acesso: ${e.message}")
+                }
+            }
+        }
+    }
+
     fun baterPonto(
         login: String,
         senha: String,
@@ -130,10 +164,14 @@ class MobileRepository(val context: Context) {
                 if (resp.ok) {
                     CoroutineScope(Dispatchers.Main).launch { onSuccess(resp.historico) }
                 } else {
-                    CoroutineScope(Dispatchers.Main).launch { onError(resp.message ?: "Erro ao carregar histórico.") }
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onError(resp.message ?: "Erro ao carregar histórico.")
+                    }
                 }
             } catch (e: Exception) {
-                CoroutineScope(Dispatchers.Main).launch { onError("Falha ao carregar histórico: ${e.message}") }
+                CoroutineScope(Dispatchers.Main).launch {
+                    onError("Falha ao carregar histórico: ${e.message}")
+                }
             }
         }
     }
