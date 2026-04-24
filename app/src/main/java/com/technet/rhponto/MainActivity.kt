@@ -20,6 +20,7 @@ import com.technet.rhponto.data.MobileRepository
 import com.technet.rhponto.model.AppUser
 import com.technet.rhponto.ui.HomeScreen
 import com.technet.rhponto.ui.LoginScreen
+import com.technet.rhponto.ui.PrimeiroAcessoScreen
 import com.technet.rhponto.ui.theme.AppTheme
 import java.io.ByteArrayOutputStream
 
@@ -55,6 +56,9 @@ private fun AppNav(repository: MobileRepository) {
     ) {
         composable("login") {
             LoginScreen(
+                onPrimeiroAcesso = {
+                    navController.navigate("primeiro_acesso")
+                },
                 onLogin = { login, senha, onResult ->
                     repository.login(
                         login = login,
@@ -68,6 +72,28 @@ private fun AppNav(repository: MobileRepository) {
                         },
                         onError = { error ->
                             onResult(error)
+                        }
+                    )
+                }
+            )
+        }
+
+        composable("primeiro_acesso") {
+            PrimeiroAcessoScreen(
+                onVoltar = {
+                    navController.popBackStack()
+                },
+                onCriarAcesso = { cpf, matricula, senha, confirmarSenha, onResult ->
+                    repository.primeiroAcesso(
+                        cpf = cpf,
+                        matricula = matricula,
+                        senha = senha,
+                        confirmarSenha = confirmarSenha,
+                        onSuccess = { msg ->
+                            onResult(msg, null)
+                        },
+                        onError = { err ->
+                            onResult(null, err)
                         }
                     )
                 }
@@ -150,9 +176,12 @@ private fun AppNav(repository: MobileRepository) {
                         login = user.loginMobile,
                         senha = user.senha,
                         onSuccess = { itens ->
-                            onResult(itens.joinToString("\n") {
-                                "${it.dataHora} - ${it.tipoMarcacao}"
-                            }, null)
+                            onResult(
+                                itens.joinToString("\n") {
+                                    "${it.dataHora} - ${it.tipoMarcacao}"
+                                },
+                                null
+                            )
                         },
                         onError = { err ->
                             onResult(null, err)
