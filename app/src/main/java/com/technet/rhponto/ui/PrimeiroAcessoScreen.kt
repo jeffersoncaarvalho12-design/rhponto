@@ -14,14 +14,12 @@ fun PrimeiroAcessoScreen(
     onVoltar: () -> Unit,
     onCriarAcesso: (
         cpf: String,
-        matricula: String,
         senha: String,
         confirmarSenha: String,
         onResult: (sucesso: String?, erro: String?) -> Unit
     ) -> Unit
 ) {
     var cpf by remember { mutableStateOf("") }
-    var matricula by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
     var confirmarSenha by remember { mutableStateOf("") }
     var mensagem by remember { mutableStateOf<String?>(null) }
@@ -37,23 +35,15 @@ fun PrimeiroAcessoScreen(
     ) {
         Text("Primeiro acesso", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text("Informe seu CPF e matrícula para criar sua senha do app.")
+        Text("Informe seu CPF para criar sua senha do app.")
         Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = cpf,
             onValueChange = { cpf = it },
             label = { Text("CPF") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = matricula,
-            onValueChange = { matricula = it },
-            label = { Text("Matrícula") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(Modifier.height(12.dp))
@@ -63,7 +53,8 @@ fun PrimeiroAcessoScreen(
             onValueChange = { senha = it },
             label = { Text("Nova senha") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(Modifier.height(12.dp))
@@ -73,7 +64,8 @@ fun PrimeiroAcessoScreen(
             onValueChange = { confirmarSenha = it },
             label = { Text("Confirmar senha") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
         )
 
         Spacer(Modifier.height(16.dp))
@@ -99,7 +91,7 @@ fun PrimeiroAcessoScreen(
                 erro = null
                 mensagem = null
 
-                onCriarAcesso(cpf, matricula, senha, confirmarSenha) { ok, err ->
+                onCriarAcesso(cpf, senha, confirmarSenha) { ok, err ->
                     carregando = false
                     mensagem = ok
                     erro = err
