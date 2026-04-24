@@ -50,6 +50,59 @@ private fun AppNav(repository: MobileRepository) {
     val navController = rememberNavController()
     var currentUser by remember { mutableStateOf<AppUser?>(null) }
 
+    var pendingObservacao by remember { mutableStateOf("") }
+    var pendingCallback by remember {
+        mutableStateOf<((String?, String?) -> Unit)?>(null)
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        val callback = pendingCallback
+        val user = currentUser
+
+        if (bitmap == null || callback == null || user == null) {
+            callback?.invoke(null, "Selfie não capturada.")
+            return@rememberLauncherForActivityResult
+        }
+
+        val fotoBase64 = bitmap.toBase64Jpeg()
+        val fused = LocationServices.getFusedLocationProviderClient(repository.context)
+
+        try {
+            fused.lastLocation
+                .addOnSuccessListener { location ->
+                    repository.baterPonto(
+                        login = user.loginMobile,
+                        senha = user.senha,
+                        latitude = location?.latitude,
+                        longitude = location?.longitude,
+                        precisaoGps = location?.accuracy?.toDouble(),
+                        fotoBase64 = fotoBase64,
+                        observacao = pendingObservacao,
+                        deviceInfo = "Android App RH Ponto",
+                        onSuccess = { msg ->
+                            callback.invoke(msg, null)
+                        },
+                        onError = { err ->
+                            callback.invoke(null, err)
+                        }
+                    )
+                }
+                .addOnFailureListener { e ->
+                    callback.invoke(null, "Falha ao obter localização: ${e.message}")
+                }
+        } catch (e: SecurityException) {
+            callback.invoke(null, "Permissão de localização não concedida.")
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        cameraLauncher.launch(null)
+    }
+
     NavHost(
         navController = navController,
         startDestination = "login"
@@ -101,6 +154,7 @@ private fun AppNav(repository: MobileRepository) {
 
         composable("home") {
             val user = currentUser
+
             if (user == null) {
                 LaunchedEffect(Unit) {
                     navController.navigate("login") {
@@ -110,68 +164,19 @@ private fun AppNav(repository: MobileRepository) {
                 return@composable
             }
 
-            val locationPermissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestMultiplePermissions()
-            ) { }
-
-            val cameraLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.TakePicturePreview()
-            ) { bitmap: Bitmap? ->
-                if (bitmap != null) {
-                    repository.pendingBitmap = bitmap
-                }
-            }
-
             HomeScreen(
                 user = user,
-                onSolicitarPermissoes = {
-                    locationPermissionLauncher.launch(
+                onBaterPonto = { observacao, onResult ->
+                    pendingObservacao = observacao
+                    pendingCallback = onResult
+
+                    permissionLauncher.launch(
                         arrayOf(
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.CAMERA
                         )
                     )
-                },
-                onCapturarSelfie = {
-                    cameraLauncher.launch(null)
-                },
-                onBaterPonto = { observacao, onResult ->
-                    val fotoBase64 = repository.pendingBitmap?.toBase64Jpeg()
-
-                    if (fotoBase64.isNullOrBlank()) {
-                        onResult(null, "Capture a selfie antes de bater o ponto.")
-                        return@HomeScreen
-                    }
-
-                    val fused = LocationServices.getFusedLocationProviderClient(repository.context)
-
-                    try {
-                        fused.lastLocation
-                            .addOnSuccessListener { location ->
-                                repository.baterPonto(
-                                    login = user.loginMobile,
-                                    senha = user.senha,
-                                    latitude = location?.latitude,
-                                    longitude = location?.longitude,
-                                    precisaoGps = location?.accuracy?.toDouble(),
-                                    fotoBase64 = fotoBase64,
-                                    observacao = observacao,
-                                    deviceInfo = "Android App RH Ponto",
-                                    onSuccess = { msg ->
-                                        onResult(msg, null)
-                                    },
-                                    onError = { err ->
-                                        onResult(null, err)
-                                    }
-                                )
-                            }
-                            .addOnFailureListener { e ->
-                                onResult(null, "Falha ao obter localização: ${e.message}")
-                            }
-                    } catch (e: SecurityException) {
-                        onResult(null, "Permissão de localização não concedida.")
-                    }
                 },
                 onHistorico = { onResult ->
                     repository.historico(
@@ -192,7 +197,6 @@ private fun AppNav(repository: MobileRepository) {
                 },
                 onLogout = {
                     currentUser = null
-                    repository.pendingBitmap = null
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
                     }
