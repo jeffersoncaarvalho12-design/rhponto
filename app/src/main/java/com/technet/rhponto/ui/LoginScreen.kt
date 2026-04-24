@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
+    onPrimeiroAcesso: () -> Unit,
     onLogin: (String, String, (String?) -> Unit) -> Unit
 ) {
     var login by remember { mutableStateOf("") }
@@ -23,13 +25,13 @@ fun LoginScreen(
     ) {
         Text("RH Ponto Mobile", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
-        Text("Login no app de registro de ponto")
+        Text("Registro de ponto com foto e localização")
         Spacer(Modifier.height(24.dp))
 
         OutlinedTextField(
             value = login,
             onValueChange = { login = it },
-            label = { Text("Login mobile") },
+            label = { Text("CPF ou login mobile") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -39,6 +41,7 @@ fun LoginScreen(
             value = senha,
             onValueChange = { senha = it },
             label = { Text("Senha") },
+            visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -65,6 +68,15 @@ fun LoginScreen(
             enabled = !carregando
         ) {
             Text(if (carregando) "Entrando..." else "Entrar")
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = onPrimeiroAcesso,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Primeiro acesso")
         }
     }
 }
